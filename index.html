@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Memories</title>
+    <!-- Fuentes elegantes -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF7;
+            --text-color: #5D5D5D;
+            --accent-color: #E6B8B8;
+            --accent-hover: #D49A9A;
+            --card-bg: #FFFFFF;
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- LOGIN --- */
+        #login-container {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 400px;
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+
+        h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; margin-bottom: 10px; color: var(--text-color); }
+        p.subtitle { font-size: 0.9rem; margin-bottom: 30px; opacity: 0.7; }
+
+        input {
+            width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 50px;
+            background: #fafafa; text-align: center; font-size: 1rem; outline: none;
+            transition: 0.3s; margin-bottom: 20px;
+        }
+        input:focus { border-color: var(--accent-color); background: #fff; }
+
+        button {
+            background-color: var(--accent-color); color: white; border: none;
+            padding: 15px 40px; border-radius: 50px; font-size: 1rem; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+        }
+        button:hover { background-color: var(--accent-hover); transform: translateY(-2px); }
+        .error-msg { color: #d68c8c; margin-top: 15px; font-size: 0.85rem; display: none; }
+
+        /* --- GALERÍA --- */
+        #gallery-container {
+            display: none;
+            width: 100%; height: 100%;
+            overflow-y: auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .gallery-header { margin-bottom: 40px; }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .photo-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            aspect-ratio: 3/4;
+            position: relative;
+            cursor: zoom-in; /* Indica que se puede agrandar */
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .photo-card img, .photo-card video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Icono de lupa sutil al pasar el mouse */
+        .photo-card::after {
+            content: '⤢';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 2rem; color: white;
+            opacity: 0.8;
+            transition: 0.3s;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .photo-card:hover::after { transform: translate(-50%, -50%) scale(1); }
+
+        .logout-btn {
+            position: fixed; bottom: 20px; right: 20px;
+            background: rgba(255,255,255,0.9); color: var(--text-color);
+            padding: 10px 20px; border-radius: 30px; font-size: 0.8rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 5;
+        }
+
+        /* --- LIGHTBOX (VISOR EN GRANDE) --- */
+        #lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* Fondo oscuro casi negro */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #lightbox-content {
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s ease;
+        }
+
+        /* Botón de cerrar el lightbox */
+        .close-lightbox {
+            position: absolute;
+            top: 20px; right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 1001;
+        }
+        .close-lightbox:hover { color: var(--accent-color); transform: rotate(90deg); }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .fade-in { animation: fadeIn 1s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE BLOQUEO -->
+    <div id="login-container" class="fade-in">
+        <h1>For Us</h1>
+        <p class="subtitle">Solo para nosotras 4</p>
+        <input type="password" id="passwordInput" placeholder="Ingresa la clave secreta">
+        <br>
+        <button onclick="checkPassword()">Entrar</button>
+        <p id="error-msg" class="error-msg">Ups, esa no es la clave ✨</p>
+    </div>
+
+    <!-- PANTALLA DE GALERÍA -->
+    <div id="gallery-container">
+        <div class="gallery-header fade-in">
+            <h1>Nuestros Momentos</h1>
+            <p>Toca una foto para verla en grande</p>
+        </div>
+
+        <div class="gallery-grid fade-in">
+            <!-- FOTO 1 -->
+            <div class="photo-card" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Amigas">
+            </div>
+            <!-- FOTO 2 -->
+            <div class="photo-card" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fiesta">
+            </div>
+            <!-- FOTO 3 -->
+            <div class="photo-card" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Evento">
+            </div>
+            <!-- VIDEO -->
+            <div class="photo-card" onclick="openLightbox(this)">
+                 <video src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+            </div>
+             <!-- FOTO 4 -->
+             <div class="photo-card" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Viaje">
+            </div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <!-- LIGHTBOX (El visor en grande) -->
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <span class="close-lightbox" onclick="closeLightbox(event)">&times;</span>
+        <div id="lightbox-content"></div>
+    </div>
+
+    <script>
+        const CLAVE_SECRETA = "amigas"; 
+
+        if(sessionStorage.getItem("acceso") === "true") { mostrarGaleria(); }
+
+        function checkPassword() {
+            const input = document.getElementById("passwordInput").value.toLowerCase();
+            if(input === CLAVE_SECRETA) {
+                sessionStorage.setItem("acceso", "true");
+                mostrarGaleria();
+            } else {
+                const errorMsg = document.getElementById("error-msg");
+                errorMsg.style.display = "block";
+                document.getElementById("passwordInput").style.borderColor = "#d68c8c";
+            }
+        }
+
+        function mostrarGaleria() {
+            document.getElementById("login-container").style.display = "none";
+            document.body.style.overflow = "auto";
+            document.getElementById("gallery-container").style.display = "block";
+        }
+
+        function logout() {
+            sessionStorage.removeItem("acceso");
+            location.reload();
+        }
+
+        document.getElementById("passwordInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { checkPassword(); }
+        });
+
+        // --- FUNCIONES DEL LIGHTBOX (AGRANDAR IMAGEN) ---
+        
+        function openLightbox(element) {
+            const lightbox = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            
+            // Limpiar contenido anterior
+            content.innerHTML = '';
+
+            // Verificar si es imagen o video
+            const img = element.querySelector('img');
+            const video = element.querySelector('video');
+
+            if (img) {
+                // Es una foto
+                const newImg = document.createElement('img');
+                newImg.src = img.src;
+                newImg.id = 'lightbox-content';
+                newImg.style.maxWidth = '90%';
+                newImg.style.maxHeight = '85vh';
+                newImg.style.borderRadius = '8px';
+                content.appendChild(newImg);
+            } else if (video) {
+                // Es un video
+                const newVideo = document.createElement('video');
+                newVideo.src = video.src;
+                newVideo.controls = true; // Mostrar controles de play/pause
+                newVideo.style.maxWidth = '90%';
+                newVideo.style.maxHeight = '85vh';
+                newVideo.style.borderRadius = '8px';
+                // Autoplay opcional al abrir
+                newVideo.play(); 
+                content.appendChild(newVideo);
+            }
+
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+        }
+
+        function closeLightbox(event) {
+            // Cerrar si se hace clic en el fondo oscuro o en la X, pero no en la imagen misma
+            if (event.target.id === 'lightbox' || event.target.classList.contains('close-lightbox')) {
+                const lightbox = document.getElementById('lightbox');
+                const content = document.getElementById('lightbox-content');
+                
+                // Detener videos si los hay
+                const video = content.querySelector('video');
+                if(video) video.pause();
+
+                lightbox.classList.remove('active');
+                document.body.style.overflow = 'auto'; // Reactivar scroll
+                
+                // Limpiar después de la animación
+                setTimeout(() => { content.innerHTML = ''; }, 300);
+            }
+        }
+    </script>
+</body>
+</html>
