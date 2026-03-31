@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Memories</title>
+    <title>Bestie Friends</title>
     <!-- Fuentes elegantes -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #FDFBF7;
+            --bg-color: #fcdcdc;
             --text-color: #5D5D5D;
             --accent-color: #E6B8B8;
             --accent-hover: #D49A9A;
-            --card-bg: #FFFFFF;
+            --card-bg: #fff1f1;
             --shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
@@ -86,9 +86,13 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            aspect-ratio: 3/4;
+            /* MODIFICADO: Eliminado aspect-ratio fijo */
             position: relative;
-            cursor: zoom-in; /* Indica que se puede agrandar */
+            cursor: zoom-in;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
         }
 
         .photo-card:hover {
@@ -96,13 +100,15 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.1);
         }
 
+        /* MODIFICADO: Para mantener aspect ratio original */
         .photo-card img, .photo-card video {
-            width: 100%; height: 100%;
-            object-fit: cover;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
             display: block;
+            max-height: 400px;
         }
 
-        /* Icono de lupa sutil al pasar el mouse */
         .photo-card::after {
             content: '⤢';
             position: absolute;
@@ -112,6 +118,7 @@
             opacity: 0.8;
             transition: 0.3s;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            pointer-events: none;
         }
         .photo-card:hover::after { transform: translate(-50%, -50%) scale(1); }
 
@@ -120,6 +127,14 @@
             background: rgba(255,255,255,0.9); color: var(--text-color);
             padding: 10px 20px; border-radius: 30px; font-size: 0.8rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 5;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+        }
+        .logout-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
         }
 
         /* --- LIGHTBOX (VISOR EN GRANDE) --- */
@@ -129,7 +144,7 @@
             z-index: 1000;
             left: 0; top: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.95); /* Fondo oscuro casi negro */
+            background-color: rgba(0, 0, 0, 0.95);
             justify-content: center;
             align-items: center;
             flex-direction: column;
@@ -143,6 +158,10 @@
         }
 
         #lightbox-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1rem;
             max-width: 90%;
             max-height: 85vh;
             border-radius: 8px;
@@ -150,7 +169,16 @@
             animation: zoomIn 0.3s ease;
         }
 
-        /* Botón de cerrar el lightbox */
+        /* MODIFICADO: Para que el contenido del lightbox mantenga su aspect ratio */
+        #lightbox-content img, #lightbox-content video {
+            max-width: 100%;
+            max-height: 85vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
         .close-lightbox {
             position: absolute;
             top: 20px; right: 30px;
@@ -163,6 +191,14 @@
         }
         .close-lightbox:hover { color: var(--accent-color); transform: rotate(90deg); }
 
+        /* Indicador de carga */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
         @keyframes zoomIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
@@ -171,6 +207,22 @@
         .fade-in { animation: fadeIn 1s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Responsive */
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+            .gallery-header h1 { font-size: 1.8rem; }
+            
+            .photo-card {
+                min-height: 180px;
+            }
+            
+            .photo-card img, .photo-card video {
+                max-height: 280px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -188,52 +240,137 @@
     <!-- PANTALLA DE GALERÍA -->
     <div id="gallery-container">
         <div class="gallery-header fade-in">
-            <h1>Nuestros Momentos</h1>
-            <p>Toca una foto para verla en grande</p>
+            <h1>Nuestros Grandes Momentos</h1>
+            <h1>Juntas</h1>
         </div>
 
-        <div class="gallery-grid fade-in">
-            <!-- FOTO 1 -->
-            <div class="photo-card" onclick="openLightbox(this)">
-                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Amigas">
-            </div>
-            <!-- FOTO 2 -->
-            <div class="photo-card" onclick="openLightbox(this)">
-                <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fiesta">
-            </div>
-            <!-- FOTO 3 -->
-            <div class="photo-card" onclick="openLightbox(this)">
-                <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Evento">
-            </div>
-            <!-- VIDEO -->
-            <div class="photo-card" onclick="openLightbox(this)">
-                 <video src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
-            </div>
-             <!-- FOTO 4 -->
-             <div class="photo-card" onclick="openLightbox(this)">
-                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Viaje">
-            </div>
+        <div class="gallery-grid" id="gallery-grid">
+            <div class="loading">Cargando galería... ✨</div>
         </div>
 
         <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
     </div>
 
-    <!-- LIGHTBOX (El visor en grande) -->
+    <!-- LIGHTBOX -->
     <div id="lightbox" onclick="closeLightbox(event)">
         <span class="close-lightbox" onclick="closeLightbox(event)">&times;</span>
         <div id="lightbox-content"></div>
     </div>
 
     <script>
-        const CLAVE_SECRETA = "amigas"; 
+        const CLAVE_SECRETA = "amigas";
+        
+        // ============================================
+        // 📦 OBJETO CON TODAS LAS IMÁGENES Y VIDEOS
+        // ============================================
+        const galeria = {
+            // Imágenes: del 1 al 15 en carpeta "fotos/"
+            imagenes: [
+                { id: 1, archivo: "1.jpeg", tipo: "imagen", ruta: "fotos/1.jpeg" },
+                { id: 2, archivo: "2.jpeg", tipo: "imagen", ruta: "fotos/2.jpeg" },
+                { id: 3, archivo: "3.jpeg", tipo: "imagen", ruta: "fotos/3.jpeg" },
+                { id: 4, archivo: "4.jpeg", tipo: "imagen", ruta: "fotos/4.jpeg" },
+                { id: 5, archivo: "5.jpeg", tipo: "imagen", ruta: "fotos/5.jpeg" },
+                { id: 6, archivo: "6.jpeg", tipo: "imagen", ruta: "fotos/6.jpeg" },
+                { id: 7, archivo: "7.jpeg", tipo: "imagen", ruta: "fotos/7.jpeg" },
+                { id: 8, archivo: "8.jpeg", tipo: "imagen", ruta: "fotos/8.jpeg" },
+                { id: 9, archivo: "9.jpeg", tipo: "imagen", ruta: "fotos/9.jpeg" },
+                { id: 10, archivo: "10.jpeg", tipo: "imagen", ruta: "fotos/10.jpeg" },
+                { id: 11, archivo: "11.jpeg", tipo: "imagen", ruta: "fotos/11.jpeg" },
+                { id: 12, archivo: "12.jpeg", tipo: "imagen", ruta: "fotos/12.jpeg" },
+                { id: 13, archivo: "13.jpeg", tipo: "imagen", ruta: "fotos/13.jpeg" },
+                { id: 14, archivo: "14.jpeg", tipo: "imagen", ruta: "fotos/14.jpeg" },
+                { id: 15, archivo: "15.jpeg", tipo: "imagen", ruta: "fotos/15.jpeg" }
+            ],
+            // Videos: del 1 al 25 en carpeta "videos/"
+            videos: [
+                { id: 1, archivo: "1.mp4", tipo: "video", ruta: "videos/1.mp4" },
+                { id: 2, archivo: "2.mp4", tipo: "video", ruta: "videos/2.mp4" },
+                { id: 3, archivo: "3.mp4", tipo: "video", ruta: "videos/3.mp4" },
+                { id: 4, archivo: "4.mp4", tipo: "video", ruta: "videos/4.mp4" },
+                { id: 5, archivo: "5.mp4", tipo: "video", ruta: "videos/5.mp4" },
+                { id: 6, archivo: "6.mp4", tipo: "video", ruta: "videos/6.mp4" },
+                { id: 7, archivo: "7.mp4", tipo: "video", ruta: "videos/7.mp4" },
+                { id: 8, archivo: "8.mp4", tipo: "video", ruta: "videos/8.mp4" },
+                { id: 9, archivo: "9.mp4", tipo: "video", ruta: "videos/9.mp4" },
+                { id: 10, archivo: "10.mp4", tipo: "video", ruta: "videos/10.mp4" },
+                { id: 11, archivo: "11.mp4", tipo: "video", ruta: "videos/11.mp4" },
+                { id: 12, archivo: "12.mp4", tipo: "video", ruta: "videos/12.mp4" },
+                { id: 13, archivo: "13.mp4", tipo: "video", ruta: "videos/13.mp4" },
+                { id: 14, archivo: "14.mp4", tipo: "video", ruta: "videos/14.mp4" },
+                { id: 15, archivo: "15.mp4", tipo: "video", ruta: "videos/15.mp4" },
+                { id: 16, archivo: "16.mp4", tipo: "video", ruta: "videos/16.mp4" },
+                { id: 17, archivo: "17.mp4", tipo: "video", ruta: "videos/17.mp4" },
+                { id: 18, archivo: "18.mp4", tipo: "video", ruta: "videos/18.mp4" },
+                { id: 19, archivo: "19.mp4", tipo: "video", ruta: "videos/19.mp4" },
+                { id: 20, archivo: "20.mp4", tipo: "video", ruta: "videos/20.mp4" },
+                { id: 21, archivo: "21.mp4", tipo: "video", ruta: "videos/21.mp4" },
+                { id: 22, archivo: "22.mp4", tipo: "video", ruta: "videos/22.mp4" },
+                { id: 23, archivo: "23.mp4", tipo: "video", ruta: "videos/23.mp4" },
+                { id: 24, archivo: "24.mp4", tipo: "video", ruta: "videos/24.mp4" },
+                { id: 25, archivo: "25.mp4", tipo: "video", ruta: "videos/25.mp4" }
+            ]
+        };
 
-        if(sessionStorage.getItem("acceso") === "true") { mostrarGaleria(); }
+        // Combinar imágenes y videos en un solo array (orden opcional)
+        function obtenerTodoElContenido() {
+            // Primero imágenes, luego videos (puedes cambiar el orden si quieres mezclarlos)
+            return [...galeria.imagenes, ...galeria.videos];
+        }
+
+        // Función para generar la galería dinámicamente
+        function cargarGaleria() {
+            const grid = document.getElementById('gallery-grid');
+            const todosLosItems = obtenerTodoElContenido();
+            
+            // Limpiar y mostrar loading
+            grid.innerHTML = '';
+            
+            // Crear cada elemento de la galería
+            todosLosItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                card.onclick = () => openLightbox(card);
+                
+                if (item.tipo === 'imagen') {
+                    const img = document.createElement('img');
+                    img.src = item.ruta;
+                    img.alt = `Momento ${item.id}`;
+                    img.loading = 'lazy'; // Carga diferida para mejor rendimiento
+                    card.appendChild(img);
+                } else if (item.tipo === 'video') {
+                    const video = document.createElement('video');
+                    video.src = item.ruta;
+                    video.muted = true;
+                    video.preload = 'metadata'; // Solo precarga metadatos
+                    video.addEventListener('mouseenter', () => video.play());
+                    video.addEventListener('mouseleave', () => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                    card.appendChild(video);
+                }
+                
+                // Guardar la ruta y tipo en el card para usarlos en el lightbox
+                card.dataset.ruta = item.ruta;
+                card.dataset.tipo = item.tipo;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Verificar sesión al cargar
+        if(sessionStorage.getItem("acceso") === "true") { 
+            mostrarGaleria(); 
+            cargarGaleria();
+        }
 
         function checkPassword() {
             const input = document.getElementById("passwordInput").value.toLowerCase();
             if(input === CLAVE_SECRETA) {
                 sessionStorage.setItem("acceso", "true");
                 mostrarGaleria();
+                cargarGaleria();
             } else {
                 const errorMsg = document.getElementById("error-msg");
                 errorMsg.style.display = "block";
@@ -256,59 +393,55 @@
             if (event.key === "Enter") { checkPassword(); }
         });
 
-        // --- FUNCIONES DEL LIGHTBOX (AGRANDAR IMAGEN) ---
+        // --- FUNCIONES DEL LIGHTBOX ---
         
         function openLightbox(element) {
             const lightbox = document.getElementById('lightbox');
             const content = document.getElementById('lightbox-content');
+            const tipo = element.dataset.tipo;
+            const ruta = element.dataset.ruta;
             
             // Limpiar contenido anterior
             content.innerHTML = '';
 
-            // Verificar si es imagen o video
-            const img = element.querySelector('img');
-            const video = element.querySelector('video');
-
-            if (img) {
-                // Es una foto
+            if (tipo === 'imagen') {
                 const newImg = document.createElement('img');
-                newImg.src = img.src;
-                newImg.id = 'lightbox-content';
+                newImg.src = ruta;
                 newImg.style.maxWidth = '90%';
                 newImg.style.maxHeight = '85vh';
+                newImg.style.width = 'auto';
+                newImg.style.height = 'auto';
+                newImg.style.objectFit = 'contain';
                 newImg.style.borderRadius = '8px';
                 content.appendChild(newImg);
-            } else if (video) {
-                // Es un video
+            } else if (tipo === 'video') {
                 const newVideo = document.createElement('video');
-                newVideo.src = video.src;
-                newVideo.controls = true; // Mostrar controles de play/pause
+                newVideo.src = ruta;
+                newVideo.controls = true;
                 newVideo.style.maxWidth = '90%';
                 newVideo.style.maxHeight = '85vh';
+                newVideo.style.width = 'auto';
+                newVideo.style.height = 'auto';
                 newVideo.style.borderRadius = '8px';
-                // Autoplay opcional al abrir
-                newVideo.play(); 
+                newVideo.autoplay = true;
                 content.appendChild(newVideo);
             }
 
             lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+            document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox(event) {
-            // Cerrar si se hace clic en el fondo oscuro o en la X, pero no en la imagen misma
             if (event.target.id === 'lightbox' || event.target.classList.contains('close-lightbox')) {
                 const lightbox = document.getElementById('lightbox');
                 const content = document.getElementById('lightbox-content');
                 
-                // Detener videos si los hay
                 const video = content.querySelector('video');
                 if(video) video.pause();
 
                 lightbox.classList.remove('active');
-                document.body.style.overflow = 'auto'; // Reactivar scroll
+                document.body.style.overflow = 'auto';
                 
-                // Limpiar después de la animación
                 setTimeout(() => { content.innerHTML = ''; }, 300);
             }
         }
